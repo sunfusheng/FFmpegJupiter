@@ -20,7 +20,7 @@ jstring getFFmpegVersion(JNIEnv *env, jclass clazz) {
     return env->NewStringUTF(version);
 }
 
-JNINativeMethod jni_methods_table[] = {
+static const JNINativeMethod gMethods[] = {
         {"getFFmpegVersion", "()Ljava/lang/String;", (void *) getFFmpegVersion}
 };
 
@@ -30,11 +30,10 @@ int registerNatives(JNIEnv *env) {
     if (clazz == nullptr) {
         return JNI_ERR;
     }
-    int methods_count = sizeof(jni_methods_table) / sizeof(JNINativeMethod);
-    if (env->RegisterNatives(clazz, jni_methods_table, methods_count) != JNI_OK) {
+    int methods_count = sizeof(gMethods) / sizeof(JNINativeMethod);
+    if (env->RegisterNatives(clazz, gMethods, methods_count) != JNI_OK) {
         return JNI_ERR;
     }
-    env->DeleteLocalRef(clazz);
     return JNI_OK;
 }
 
