@@ -18,4 +18,6 @@ public class FFmpegUtils {
   }
 
   public static native String getFFmpegVersion();
+
+  public static native int getVideoFirstFrame(String path);
 }
