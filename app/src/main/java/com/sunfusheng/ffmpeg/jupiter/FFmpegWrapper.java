@@ -1,4 +1,4 @@
-package com.sunfusheng.ffmpeg.jupiter.ffmpeg;
+package com.sunfusheng.ffmpeg.jupiter;
 
 import android.graphics.Bitmap;
 

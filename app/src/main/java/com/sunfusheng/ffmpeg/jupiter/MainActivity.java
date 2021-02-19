@@ -16,7 +16,6 @@ import com.qw.soul.permission.SoulPermission;
 import com.qw.soul.permission.bean.Permission;
 import com.qw.soul.permission.bean.Permissions;
 import com.qw.soul.permission.callbcak.CheckRequestPermissionsListener;
-import com.sunfusheng.ffmpeg.jupiter.ffmpeg.FFmpegWrapper;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {

@@ -12,7 +12,7 @@ extern "C" {
 #include "android/bitmap.h"
 #include "libyuv.h"
 
-static const char *FFmpegUtilsClassName = "com/sunfusheng/ffmpeg/jupiter/ffmpeg/FFmpegWrapper";
+static const char *FFmpegUtilsClassName = "com/sunfusheng/ffmpeg/jupiter/FFmpegWrapper";
 static const char *TAG = "[sfs] ffmpeg_wrapper";
 
 #define logDebug(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
@@ -34,34 +34,15 @@ static jobject createBitmap(JNIEnv *env, int width, int height) {
     jmethodID valueOfBitmapConfigFunction = env->GetStaticMethodID(bitmapConfigClass,
                                                                    "valueOf",
                                                                    "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
-
     jobject bitmapConfig = env->CallStaticObjectMethod(bitmapConfigClass,
                                                        valueOfBitmapConfigFunction,
                                                        configName);
-
     jobject newBitmap = env->CallStaticObjectMethod(bitmapCls,
                                                     createBitmapFunction,
-                                                    width, height,
+                                                    width,
+                                                    height,
                                                     bitmapConfig);
-
     return newBitmap;
-}
-
-void saveBitmap(AVFrame *pFrame, int width, int height) {
-
-    const char *out_file = "/storage/emulated/0/get_cover.png";
-    FILE *file = fopen(out_file, "w+");
-    if (!file) {
-        logDebug("fopen out file error");
-        return;
-    }
-
-    fprintf(file, "P6\n%d %d\n255\n", width, height); // header
-
-    for (int y = 0; y < height; y++) {
-        fwrite(pFrame->data[0] + y * pFrame->linesize[0], 1, width * 4, file);
-    }
-    fclose(file);
 }
 
 static jobject get_video_first_frame(JNIEnv *env, jclass clazz, jstring path) {
@@ -143,7 +124,7 @@ static jobject get_video_first_frame(JNIEnv *env, jclass clazz, jstring path) {
     void *addrPtr;
     ret = AndroidBitmap_lockPixels(env, bitmap, &addrPtr);
     if (ret < 0) {
-        logError("lockPixels error");
+        logError("AndroidBitmap_lockPixels error");
         return nullptr;
     }
 
@@ -163,16 +144,16 @@ static jobject get_video_first_frame(JNIEnv *env, jclass clazz, jstring path) {
     }
 
     int line_size = frame->width * 4;
-    libyuv::I420ToABGR(frame->data[0], frame->linesize[0], // Y
-                       frame->data[1], frame->linesize[1], // U
-                       frame->data[2], frame->linesize[2], // V
-                       (uint8_t *) addrPtr, line_size,  // RGBA
+    libyuv::I420ToABGR(frame->data[0], frame->linesize[0],
+                       frame->data[1], frame->linesize[1],
+                       frame->data[2], frame->linesize[2],
+                       (uint8_t *) addrPtr, line_size,
                        frame->width, frame->height);
 
-    avformat_close_input(&fmt_ctx);
+    AndroidBitmap_unlockPixels(env, bitmap);
     av_free(frame);
     avcodec_close(codec_ctx);
-    AndroidBitmap_unlockPixels(env, bitmap);
+    avformat_close_input(&fmt_ctx);
     return bitmap;
 }
 
