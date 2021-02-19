@@ -1,5 +1,7 @@
 package com.sunfusheng.ffmpeg.jupiter.ffmpeg;
 
+import android.graphics.Bitmap;
+
 /**
  * @author sunfusheng
  * @since 2021/02/09
@@ -14,10 +16,11 @@ public class FFmpegWrapper {
     System.loadLibrary("avutil");
     System.loadLibrary("swresample");
     System.loadLibrary("swscale");
+    System.loadLibrary("yuv");
     System.loadLibrary("ffmpeg-jupiter");
   }
 
   public static native String getFFmpegVersion();
 
-  public static native int getVideoFirstFrame(String path);
+  public static native Bitmap getVideoFirstFrame(String path);
 }
