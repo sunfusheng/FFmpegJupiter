@@ -4,7 +4,7 @@ package com.sunfusheng.ffmpeg.jupiter.ffmpeg;
  * @author sunfusheng
  * @since 2021/02/09
  */
-public class FFmpegUtils {
+public class FFmpegWrapper {
 
   static {
     System.loadLibrary("avcodec");

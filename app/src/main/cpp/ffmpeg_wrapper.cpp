@@ -10,11 +10,11 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 
-static const char *FFmpegUtilsClassName = "com/sunfusheng/ffmpeg/jupiter/ffmpeg/FFmpegUtils";
+static const char *FFmpegUtilsClassName = "com/sunfusheng/ffmpeg/jupiter/ffmpeg/FFmpegWrapper";
 
-#define logDebug(...) __android_log_print(ANDROID_LOG_DEBUG,"[sfs] ffmpeg_utils",__VA_ARGS__)
-#define logWarn(...) __android_log_print(ANDROID_LOG_WARN,"[sfs] ffmpeg_utils",__VA_ARGS__)
-#define logError(...) __android_log_print(ANDROID_LOG_ERROR,"[sfs] ffmpeg_utils",__VA_ARGS__)
+#define logDebug(...) __android_log_print(ANDROID_LOG_DEBUG,"[sfs] ffmpeg_wrapper",__VA_ARGS__)
+#define logWarn(...) __android_log_print(ANDROID_LOG_WARN,"[sfs] ffmpeg_wrapper",__VA_ARGS__)
+#define logError(...) __android_log_print(ANDROID_LOG_ERROR,"[sfs] ffmpeg_wrapper",__VA_ARGS__)
 
 static jstring get_ffmpeg_version(JNIEnv *env, jclass clazz) {
     const char *version = av_version_info();
