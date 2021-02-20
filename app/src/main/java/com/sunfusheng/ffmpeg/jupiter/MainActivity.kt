@@ -1,93 +1,85 @@
-package com.sunfusheng.ffmpeg.jupiter;
+package com.sunfusheng.ffmpeg.jupiter
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.TextView;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import com.qw.soul.permission.SoulPermission;
-import com.qw.soul.permission.bean.Permission;
-import com.qw.soul.permission.bean.Permissions;
-import com.qw.soul.permission.callbcak.CheckRequestPermissionsListener;
-import java.io.File;
+import android.Manifest.permission
+import android.content.Intent
+import android.os.Build
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
+import android.os.Bundle
+import android.os.Environment
+import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.qw.soul.permission.SoulPermission
+import com.qw.soul.permission.bean.Permission
+import com.qw.soul.permission.bean.Permissions
+import com.qw.soul.permission.callbcak.CheckRequestPermissionsListener
+import com.sunfusheng.ffmpeg.jupiter.R.id
+import com.sunfusheng.ffmpeg.jupiter.R.layout
+import java.io.File
 
-public class MainActivity extends AppCompatActivity {
+class MainActivity : AppCompatActivity() {
 
-  private static final String TAG = "MainActivity";
-  private static final int REQUEST_CODE_PICK_VIDEO_FILE = 100;
+  companion object {
+    private const val TAG = "MainActivity"
+    private const val REQUEST_CODE_PICK_VIDEO_FILE = 100
+  }
 
-  private String path1 = Environment.getExternalStorageDirectory().getAbsolutePath() +
-      File.separator + "zhongyanggongyuan.mp4";
-  private String path2 = Environment.getExternalStorageDirectory().getAbsolutePath() +
-      File.separator + "biaoqingmofang.mp4";
+  private val path1 = Environment.getExternalStorageDirectory().absolutePath +
+      File.separator + "zhongyanggongyuan.mp4"
+  private val path2 = Environment.getExternalStorageDirectory().absolutePath +
+      File.separator + "biaoqingmofang.mp4"
 
-  private TextView vText;
-  private ImageView vImage;
+  private var vText: TextView? = null
+  private var vImage: ImageView? = null
 
-  private StringBuilder mText = new StringBuilder();
+  private val mText = StringBuilder()
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-    vText = findViewById(R.id.text);
-    vImage = findViewById(R.id.image);
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(layout.activity_main)
+    vText = findViewById(id.text)
+    vImage = findViewById(id.image)
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      mText.append("CPU Supported ABIS: ");
-      for (int i = 0; i < Build.SUPPORTED_ABIS.length; i++) {
-        mText.append("\n").append(i + 1).append("、").append(Build.SUPPORTED_ABIS[i]);
-      }
+    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+      mText.append("CPU Supported ABI: ").append(Build.SUPPORTED_ABIS[0]);
     }
-    mText.append("\n\nFFmpeg Version: ").append(FFmpegWrapper.getFFmpegVersion());
-    vText.setText(mText);
+    mText.append("\nFFmpeg Version: ").append(FFmpegWrapper.getFFmpegVersion())
+    vText?.text = mText
 
-    SoulPermission.getInstance().checkAndRequestPermissions(Permissions.build(
-        Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE), new CheckRequestPermissionsListener() {
-      @Override
-      public void onAllPermissionOk(Permission[] allPermissions) {
-        initFFmpeg();
-      }
+    SoulPermission.getInstance().checkAndRequestPermissions(
+      Permissions.build(permission.READ_EXTERNAL_STORAGE, permission.WRITE_EXTERNAL_STORAGE),
+      object : CheckRequestPermissionsListener {
+        override fun onAllPermissionOk(allPermissions: Array<Permission>) {
+          initFFmpeg()
+        }
 
-      @Override
-      public void onPermissionDenied(Permission[] refusedPermissions) {
-
-      }
-    });
+        override fun onPermissionDenied(refusedPermissions: Array<Permission>) {}
+      })
   }
 
-  private void initFFmpeg() {
-    long startTime = System.currentTimeMillis();
-    Bitmap bitmap = FFmpegWrapper.getVideoFirstFrame(path1);
-    Log.d(TAG, "Time consumed: " + (System.currentTimeMillis() - startTime) + "ms");
-    if (bitmap != null) {
-      vImage.setImageBitmap(bitmap);
-    }
+  private fun initFFmpeg() {
+    val startTime = System.currentTimeMillis()
+    val bitmap = FFmpegWrapper.getVideoFirstFrame(path1)
+    Log.d(TAG, "Time consumed: " + (System.currentTimeMillis() - startTime) + "ms")
+    vImage?.setImageBitmap(bitmap)
   }
 
-  private void pickVideoFile() {
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-    intent.addCategory(Intent.CATEGORY_OPENABLE);
-    intent.setType("*/*");
-    String[] mimeTypes = { "video/*" };
-    intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-    startActivityForResult(intent, REQUEST_CODE_PICK_VIDEO_FILE);
+  private fun pickVideoFile() {
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+    intent.addCategory(Intent.CATEGORY_OPENABLE)
+    intent.type = "*/*"
+    val mimeTypes = arrayOf("video/*")
+    intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
+    startActivityForResult(intent, REQUEST_CODE_PICK_VIDEO_FILE)
   }
 
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-    super.onActivityResult(requestCode, resultCode, data);
-    if (requestCode == REQUEST_CODE_PICK_VIDEO_FILE && resultCode == Activity.RESULT_OK) {
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == REQUEST_CODE_PICK_VIDEO_FILE && resultCode == RESULT_OK) {
       if (data != null) {
-        Log.d(TAG, "[sfs] uri: " + data.getData());
+        Log.d(TAG, "[sfs] uri: " + data.data)
       }
     }
   }

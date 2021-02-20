@@ -12,7 +12,7 @@ extern "C" {
 #include "android/bitmap.h"
 #include "libyuv.h"
 
-static const char *FFmpegUtilsClassName = "com/sunfusheng/ffmpeg/jupiter/FFmpegWrapper";
+static const char *FFmpegWrapperClassPath = "com/sunfusheng/ffmpeg/jupiter/FFmpegWrapper";
 static const char *TAG = "[sfs] ffmpeg_wrapper";
 
 #define logDebug(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
@@ -24,21 +24,22 @@ static jstring get_ffmpeg_version(JNIEnv *env, jclass clazz) {
     return env->NewStringUTF(version);
 }
 
+// 创建一个ARGB_8888的Bitmap，通过Bitmap.createBitmap(width. height, Bitmap.Config.valueOf("ARGB_8888"))
 static jobject createBitmap(JNIEnv *env, int width, int height) {
-    jclass bitmapCls = env->FindClass("android/graphics/Bitmap");
-    jmethodID createBitmapFunction = env->GetStaticMethodID(bitmapCls,
-                                                            "createBitmap",
-                                                            "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
-    jstring configName = env->NewStringUTF("ARGB_8888");
+    jclass bitmapClass = env->FindClass("android/graphics/Bitmap");
+    jmethodID createBitmapMethod = env->GetStaticMethodID(bitmapClass,
+                                                          "createBitmap",
+                                                          "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
     jclass bitmapConfigClass = env->FindClass("android/graphics/Bitmap$Config");
-    jmethodID valueOfBitmapConfigFunction = env->GetStaticMethodID(bitmapConfigClass,
-                                                                   "valueOf",
-                                                                   "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
+    jmethodID bitmapConfigValueOfMethod = env->GetStaticMethodID(bitmapConfigClass,
+                                                                 "valueOf",
+                                                                 "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
+    jstring ARGB_8888 = env->NewStringUTF("ARGB_8888");
     jobject bitmapConfig = env->CallStaticObjectMethod(bitmapConfigClass,
-                                                       valueOfBitmapConfigFunction,
-                                                       configName);
-    jobject newBitmap = env->CallStaticObjectMethod(bitmapCls,
-                                                    createBitmapFunction,
+                                                       bitmapConfigValueOfMethod,
+                                                       ARGB_8888);
+    jobject newBitmap = env->CallStaticObjectMethod(bitmapClass,
+                                                    createBitmapMethod,
                                                     width,
                                                     height,
                                                     bitmapConfig);
@@ -62,8 +63,8 @@ static jobject get_video_first_frame(JNIEnv *env, jclass clazz, jstring path) {
         return nullptr;
     }
 
-    int video_stream_index = -1; // 视频流索引位置
     AVCodecParameters *codecpar = nullptr;
+    int video_stream_index = -1; // 视频流索引位置
     for (int i = 0; i < fmt_ctx->nb_streams; i++) {
         AVStream *stream = fmt_ctx->streams[i];
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
@@ -113,45 +114,50 @@ static jobject get_video_first_frame(JNIEnv *env, jclass clazz, jstring path) {
         return nullptr;
     }
 
-    // 申请帧结构体
-    AVFrame *frame = av_frame_alloc();
-    if (!frame) {
-        logError("申请帧结构体失败");
-        return nullptr;
-    }
-
+    // 创建Bitmap对象
     jobject bitmap = createBitmap(env, codecpar->width, codecpar->height);
-    void *addrPtr;
-    ret = AndroidBitmap_lockPixels(env, bitmap, &addrPtr);
+    void *bitmap_ptr;
+    ret = AndroidBitmap_lockPixels(env, bitmap, &bitmap_ptr);
     if (ret < 0) {
         logError("AndroidBitmap_lockPixels error");
         return nullptr;
     }
 
-    AVPacket packet;
-    int framePtr;
-    while (av_read_frame(fmt_ctx, &packet) >= 0) {
-        if (packet.stream_index != video_stream_index) {
+    // 申请帧结构体
+    AVFrame *av_frame = av_frame_alloc();
+    if (!av_frame) {
+        logError("申请帧结构体失败");
+        return nullptr;
+    }
+
+    int av_frame_ptr;
+    AVPacket av_pkt;
+    while (av_read_frame(fmt_ctx, &av_pkt) >= 0) {
+        if (av_pkt.stream_index != video_stream_index) {
             continue;
         }
 
-        avcodec_decode_video2(codec_ctx, frame, &framePtr, &packet);
-        av_packet_unref(&packet);
-        if (framePtr) {
+        avcodec_decode_video2(codec_ctx, av_frame, &av_frame_ptr, &av_pkt);
+        av_packet_unref(&av_pkt);
+        if (av_frame_ptr) {
             logDebug("首帧读取完毕");
             break;
         }
     }
 
-    int line_size = frame->width * 4;
-    libyuv::I420ToABGR(frame->data[0], frame->linesize[0],
-                       frame->data[1], frame->linesize[1],
-                       frame->data[2], frame->linesize[2],
-                       (uint8_t *) addrPtr, line_size,
-                       frame->width, frame->height);
+    // 将YUV转换为ARGB
+    int line_size;
+    line_size = av_frame->width * 4;
+    libyuv::I420ToABGR(av_frame->data[0], av_frame->linesize[0],
+                       av_frame->data[1], av_frame->linesize[1],
+                       av_frame->data[2], av_frame->linesize[2],
+                       (uint8_t *) bitmap_ptr, line_size,
+                       av_frame->width, av_frame->height);
+
+    // 释放资源
 
     AndroidBitmap_unlockPixels(env, bitmap);
-    av_free(frame);
+    av_free(av_frame);
     avcodec_close(codec_ctx);
     avformat_close_input(&fmt_ctx);
     return bitmap;
@@ -165,7 +171,7 @@ static const JNINativeMethod gMethods[] = {
 
 int registerNatives(JNIEnv *env) {
     logDebug("registerNatives()");
-    jclass clazz = env->FindClass(FFmpegUtilsClassName);
+    jclass clazz = env->FindClass(FFmpegWrapperClassPath);
     if (clazz == nullptr) {
         return JNI_ERR;
     }
