@@ -8,19 +8,19 @@ import android.graphics.Bitmap
  */
 object FFmpegWrapper {
 
-  init {
-    System.loadLibrary("avcodec")
-    System.loadLibrary("avdevice")
-    System.loadLibrary("avfilter")
-    System.loadLibrary("avformat")
-    System.loadLibrary("avutil")
-    System.loadLibrary("swresample")
-    System.loadLibrary("swscale")
-    System.loadLibrary("yuv")
-    System.loadLibrary("ffmpeg-jupiter")
-  }
+    init {
+        System.loadLibrary("avcodec")
+        System.loadLibrary("avdevice")
+        System.loadLibrary("avfilter")
+        System.loadLibrary("avformat")
+        System.loadLibrary("avutil")
+        System.loadLibrary("swresample")
+        System.loadLibrary("swscale")
+        System.loadLibrary("yuv")
+        System.loadLibrary("ffmpeg-jupiter")
+    }
 
-  external fun getFFmpegVersion(): String?
+    external fun getFFmpegVersion(): String?
 
-  external fun getVideoFirstFrame(path: String?): Bitmap?
+    external fun getVideoFirstFrame(path: String?): Bitmap?
 }

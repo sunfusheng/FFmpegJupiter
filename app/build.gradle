@@ -5,79 +5,87 @@ Properties signingProperties = new Properties()
 signingProperties.load(new FileInputStream(file("../signings/signing.properties")))
 
 android {
-  compileSdkVersion 30
-  buildToolsVersion "30.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
 
-  defaultConfig {
-    applicationId "com.sunfusheng.ffmpeg.jupiter"
-    minSdkVersion 19
-    targetSdkVersion 30
-    versionCode 1
-    versionName "1.0"
+    defaultConfig {
+        applicationId "com.sunfusheng.ffmpeg.jupiter"
+        minSdkVersion 19
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+
+            ndk {
+                abiFilters 'armeabi-v7a'
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
 
     externalNativeBuild {
-      cmake {
-        cppFlags ""
-      }
-
-      ndk {
-        abiFilters 'armeabi-v7a'
-      }
-    }
-  }
-
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
-  }
-
-  externalNativeBuild {
-    cmake {
-      path "CMakeLists.txt"
-    }
-  }
-
-  sourceSets {
-    main {
-      jniLibs.srcDirs = ['libs']
-    }
-  }
-
-  signingConfigs {
-    release {
-      storeFile file(signingProperties['KEYSTORE_FILEPATH'])
-      storePassword signingProperties['STORE_PASSWORD']
-      keyAlias signingProperties['KEY_ALIAS']
-      keyPassword signingProperties['KEY_PASSWORD']
-    }
-  }
-
-  buildTypes {
-    debug {
-      signingConfig signingConfigs.release
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-    }
-    release {
-      signingConfig signingConfigs.release
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-      applicationVariants.all { variant ->
-        variant.outputs.all {
-          outputFileName = "FFmpegJupiter.apk"
+        cmake {
+            path "CMakeLists.txt"
         }
-      }
     }
-  }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(signingProperties['KEYSTORE_FILEPATH'])
+            storePassword signingProperties['STORE_PASSWORD']
+            keyAlias signingProperties['KEY_ALIAS']
+            keyPassword signingProperties['KEY_PASSWORD']
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.all {
+                    outputFileName = "FFmpegJupiter.apk"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
-  implementation 'androidx.appcompat:appcompat:1.2.0'
-  implementation 'com.google.android.material:material:1.2.1'
-  implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8"
-  api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
-  api "androidx.core:core-ktx:1.3.2"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
+    api "androidx.core:core-ktx:1.3.2"
 
-  implementation 'com.qw:soulpermission:1.3.0'
+    implementation 'com.qw:soulpermission:1.3.0'
 }
