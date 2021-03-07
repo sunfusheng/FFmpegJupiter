@@ -38,6 +38,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
 
+        binding.vPickVideo.setTitle("从文件夹中选取视频文件")
+        binding.vPickVideo.setOnClickListener {
+            pickVideoFile()
+        }
+
         if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
             mText.append("CPU Supported ABI: ").append(Build.SUPPORTED_ABIS[0]);
         }
@@ -48,16 +53,16 @@ class MainActivity : AppCompatActivity() {
                 Permissions.build(permission.READ_EXTERNAL_STORAGE, permission.WRITE_EXTERNAL_STORAGE),
                 object : CheckRequestPermissionsListener {
                     override fun onAllPermissionOk(allPermissions: Array<Permission>) {
-                        initFFmpeg()
+                        initFFmpeg(path1)
                     }
 
                     override fun onPermissionDenied(refusedPermissions: Array<Permission>) {}
                 })
     }
 
-    private fun initFFmpeg() {
+    private fun initFFmpeg(path: String) {
         val startTime = System.currentTimeMillis()
-        val bitmap = FFmpegWrapper.getVideoFirstFrame(path1)
+        val bitmap = FFmpegWrapper.getVideoFirstFrame(path)
         Log.d(TAG, "Time consumed: " + (System.currentTimeMillis() - startTime) + "ms")
         binding.vImage.setImageBitmap(bitmap)
     }
@@ -65,17 +70,21 @@ class MainActivity : AppCompatActivity() {
     private fun pickVideoFile() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "*/*"
-        val mimeTypes = arrayOf("video/*")
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
+        intent.type = "video/*"
         startActivityForResult(intent, REQUEST_CODE_PICK_VIDEO_FILE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_PICK_VIDEO_FILE && resultCode == RESULT_OK) {
-            if (data != null) {
-                Log.d(TAG, "[sfs] uri: " + data.data)
+            if (data != null && data.data != null) {
+                val uri = data.data!!
+                val path: String? = UriUtil.getRealPathFromUri(this, uri)
+                Log.d(TAG, "[sfs] uri: $uri, path:$path")
+
+                if (path != null) {
+                    initFFmpeg(path)
+                }
             }
         }
     }
